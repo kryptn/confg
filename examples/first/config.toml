@@ -1,0 +1,31 @@
+
+[overlay]
+source = "empty"
+
+    [overlay.defaults]
+    host = "0.0.0.0"
+    port = 9090
+    service_name = 'confg'
+
+
+[etcd]
+source = "etcd"
+priority = 2
+
+    [etcd.keys]
+    etcd_test = "/some/example/value"
+    test2 = "/another/example/value"
+
+    [etcd.defaults]
+    test1 = "default_value"
+    test3 = "missing value"
+
+[env]
+source="env"
+priority = 3
+
+    [env.keys]
+    host = "HOST"
+    port = "PORT"
+
+
