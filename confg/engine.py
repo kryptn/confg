@@ -25,9 +25,9 @@ def do(config):
 
 
 def _clean_config(config):
-    for name, block in config.items():
-        source = block.get('source', DEFAULT_SOURCE)
-        block['source'] = source.lower()
+    for key in config.keys():
+        source = config[key].get('source', DEFAULT_SOURCE)
+        config[key]['source'] = source.lower()
 
 
 def _one_or_none_empty_source(config):

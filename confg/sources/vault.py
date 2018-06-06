@@ -5,6 +5,9 @@ from confg._abc import AbstractSource
 
 class VaultSource(AbstractSource):
 
+    def __init__(self, *args, **kwargs):
+        pass
+
     def _make_attempts(self, slug):
         return [slug, slug.upper(), slug.lower()]
 

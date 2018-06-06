@@ -6,9 +6,6 @@ logger = logging.getLogger(__name__, )
 logger.setLevel(logging.DEBUG)
 
 
-
-
-
 @click.command()
 @click.option('--file', default='confg.toml', help='config file location')
 @click.option('--template', default='config.tmpl', help='template file location')

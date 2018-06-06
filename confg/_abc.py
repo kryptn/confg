@@ -1,4 +1,5 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+
 
 class AbstractBlock(ABC):
 
@@ -13,5 +14,9 @@ class AbstractSource(ABC):
     def render_slug(self, slug):
         ...
 
+    @abstractmethod
     def render(self, block: AbstractBlock):
         ...
+
+    def clean(self, config):
+        return config

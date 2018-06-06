@@ -1,31 +1,61 @@
 
-[overlay]
+
+# todo: make happen
+# [confg.sources.etcd.config]
+# host = '0.0.0.0'
+# port = 2379
+
+
+[base]
 source = "empty"
 
-    [overlay.defaults]
-    host = "0.0.0.0"
-    port = 9090
-    service_name = 'confg'
+  [base.defaults]
+  server_mode = 'prod'
+  host = "0.0.0.0"
+  port = 9090
+  amqp_url = "amqp://guest:guest@localhost:5672/"
+
+[shared_services]
+source = "etcd"
+priority = 1
+
+  [shared_services.keys]
+  amqp_url = "/confg/services/amqp/url"
+  redis_url = "/confg/services/redis/url"
+
+  [shared_services.config]
+  host = '0.0.0.0'
+  port = 2379
 
 
-[etcd]
+[local_dev]
 source = "etcd"
 priority = 2
 
-    [etcd.keys]
-    etcd_test = "/some/example/value"
-    test2 = "/another/example/value"
+  [local_dev.keys]
+  amqp_url = "/confg/services/amqp/url"
+  redis_url = "/confg/services/amqp/url"
 
-    [etcd.defaults]
-    test1 = "default_value"
-    test3 = "missing value"
+  [local_dev.config]
+  host = '0.0.0.0'
+  port = 2379
 
-[env]
+
+[web_host]
 source="env"
 priority = 3
 
-    [env.keys]
+    [web_host.keys]
     host = "HOST"
     port = "PORT"
+
+    server_mode = "SERVER_MODE"
+
+#[prod_values]
+#source="vault"
+#priority = 10
+#
+#  [prod_values.keys]
+#
 
 

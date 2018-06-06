@@ -1,20 +1,43 @@
-from .empty import EmptySource
-from .env import EnvSource
-from .etcd import EtcdSource
-from .vault import VaultSource
+from typing import Generic
+
+from confg._abc import AbstractSource
 
 DEFAULT_SOURCE = 'empty'
 
 
+def empty():
+    from .empty import EmptySource
+    return EmptySource
+
+
+def env():
+    from .env import EnvSource
+    return EnvSource
+
+
+def etcd():
+    from .etcd import EtcdSource
+    return EtcdSource
+
+
+def vault():
+    from .vault import VaultSource
+    return VaultSource
+
+
 _available_sources = {
-    'env': EnvSource,
-    'etcd': EtcdSource,
-    'vault': VaultSource,
-    'empty': EmptySource,
+    'env': env,
+    'etcd': etcd,
+    'vault': vault,
+    'empty': empty,
 }
 
 
 class InvalidSourceException(Exception):
+    pass
+
+
+class UninstalledSourceException(Exception):
     pass
 
 
@@ -27,4 +50,11 @@ def get_block_source(source_name):
         msg = f"{source_name} not a valid source"
         raise InvalidSourceException(msg)
 
-    return _available_sources.get(source_name)
+    import_source = _available_sources.get(source_name)
+
+    try:
+        return import_source()
+    except ImportError:
+        raise UninstalledSourceException()
+
+

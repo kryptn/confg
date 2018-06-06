@@ -5,5 +5,8 @@ from confg._abc import AbstractSource
 
 class EmptySource(AbstractSource):
 
-    def render(self, key_slugs):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def render(self, *args, **kwargs):
         return {}
