@@ -1,12 +1,10 @@
-import os
-
-from confg._abc import AbstractSource
+from confg.sources.base import Source
 
 
-class EmptySource(AbstractSource):
+class EmptySource(Source):
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, **config):
+        super().__init__(**config)
 
-    def render(self, *args, **kwargs):
-        return {}
+    def retrieve(self, lookup: str):
+        return None

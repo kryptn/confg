@@ -3,21 +3,30 @@
 
 ## Concepts:
 
-Block:
-  - toml table that is constrained to one source
+Group:
+  - toml table that logically groups like configs
+  - named
+  
+Backend:
+  - named reference to a source with optional configs
+  - allows multiple named backends to the same source
   
 Source:
   - the mechanism to retrieve a key for a block
 
 Engine:
-  - the part that reads and validates the toml config
+  - Ingests the config from a file or dictionary and produces the config
+  
+## process
+
+1. read in config
   
 ## todo:
 
 - make every key within the Block.keys dict be an object that stores retrieval metadata
   - also allows setting up keys to be live-queryable or watchable
-- make one config block per source that can be referenced throughout
-- ensure source imports are one-time
+  - progress on this, each key on a group is its own object -- should be able to add extras here
+- add validation to the objects
 
 ## maybes:
 
@@ -42,5 +51,3 @@ Engine:
 - [vault via hvac](https://github.com/ianunruh/hvac)
 - [etcd via python-etcd](http://python-etcd.readthedocs.io/en/latest/)
 - [aws parameter store (SSM) via boto](https://boto3.readthedocs.io/en/latest/reference/services/ssm.html)
-
-

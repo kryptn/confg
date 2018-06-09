@@ -1,76 +1,72 @@
+from collections import namedtuple
 from logging import getLogger
 
-from confg.sources import valid_source, DEFAULT_SOURCE
-from confg.block import blocks_from_config, reduce_blocks
+from confg.backend import Backend, default_backends
+from confg.group import Group
 
 logger = getLogger(__name__)
 
-
-def do(config):
-    _clean_config(config)
-
-    valid_config = validate_config(config)
-    if not valid_config:
-        logger.error('Cannot validate config -- exiting')
-        return None, None
-
-    blocks = blocks_from_config(config)
-    for block in blocks:
-        block.render()
-
-    result = {block.name: block.rendered for block in blocks}
-    reduced = reduce_blocks(blocks)
-
-    return result, reduced
+protected_top_level_keys = (
+    'config',
+    'confg',
+    'backend',
+    'default',
+    'coalesce',
+)
 
 
-def _clean_config(config):
-    for key in config.keys():
-        source = config[key].get('source', DEFAULT_SOURCE)
-        config[key]['source'] = source.lower()
+def unprotected_items(data, protected_keys):
+    return ((k, v) for k, v in data.items() if k not in protected_keys)
 
 
-def _one_or_none_empty_source(config):
-    empty_block_names = []
-
-    for name, block in config.items():
-        if block.get('source') == DEFAULT_SOURCE:
-            empty_block_names.append(name)
-
-    return len(empty_block_names) < 2, empty_block_names
+def check_config(config) -> (bool, list):
+    return True, []
 
 
-def _unique_priorities(config):
-    priorities = []
-    for name, block in config.items():
-        priority = block.get('priority', 0)
-        if priority in priorities:
-            return False
-        priorities.append(priority)
-    return True
+Config = namedtuple('Confg', ('backends', 'groups'))
 
 
-def validate_config(config):
-    valid, empty_blocks = _one_or_none_empty_source(config)
-    if len(empty_blocks) > 1:
-        logger.error('More than one empty source block -- %s', empty_blocks)
+def ingest_config(config):
+    valid, results = check_config(config)
+    if not valid:
+        logger.error(results)
+        return
+    if results:
+        logger.warning(results)
 
-    if not _unique_priorities(config):
-        logger.warning('ambiguous priorities -- cannot guarantee application order')
+    backends = default_backends()
 
-    for name, block in config.items():
-        logger.debug('validating block %s', name)
+    raw_backends = config.get('backend', {})
+    for name, data in raw_backends.items():
+        logger.info('parsing backend %s', name)
+        if name not in backends:
+            source = data.pop('source')
+            backends[name] = Backend(name=name, source=source)
 
-        source = block.get('source')
-        if not valid_source(source):
-            logger.error('%s -- invalid source %s', name, source)
-            valid = False
+        backends[name].update(**data)
 
-        priority = block.get('priority', 0)
-        if source != DEFAULT_SOURCE and not priority:
-            logger.warning('%s -- missing or zero priority on non-empty block', name)
+    groups = {}
+    for name, data in unprotected_items(config, protected_top_level_keys):
+        logger.info('parsing group %s', name)
+        group_backend_name = data.pop('backend')
+        group_backend = backends.get(group_backend_name)
+        groups[name] = Group(name=name, backend=group_backend, **data)
 
-        if 'keys' not in block and source != DEFAULT_SOURCE:
-            logger.warning('%s -- missing keys map -- will only apply defaults', name)
+    for group_name, group in groups.items():
+        logger.info('registering keys for group %s', group_name)
+        for key_name, key in group.keys.items():
+            logger.info('registering %s -- %s', group_name, key_name)
+            if isinstance(key.backend, str):
+                logger.info('matching key %s backend %s', key_name, key.backend)
+                key.backend = backends.get(key.backend)
 
-    return valid
+            key.backend.source.register(key)
+
+    return Config(backends=backends, groups=groups)
+
+
+def resolve_config(config: Config):
+    for backend_name, backend in config.backends.items():
+        backend.source.retrieve_all()
+
+    return {name: group.asdict() for name, group in config.groups.items()}

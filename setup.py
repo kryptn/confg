@@ -20,7 +20,7 @@ setup_args = {
             'ipdb',
         ],
         'test': [
-            'pipatomicwrites==1.1.5',
+            'atomicwrites==1.1.5',
             'attrs==18.1.0',
             'more-itertools==4.2.0',
             'pluggy==0.6.0',

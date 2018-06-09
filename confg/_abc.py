@@ -3,20 +3,24 @@ from abc import ABC, abstractmethod
 
 class AbstractBlock(ABC):
 
-
-
     def render(self):
         ...
 
 
 class AbstractSource(ABC):
 
-    def render_slug(self, slug):
+    @abstractmethod
+    def __init__(self, **config):
+        self._config = config
+
+    @abstractmethod
+    def retrieve(self, lookup: str):
         ...
 
     @abstractmethod
-    def render(self, block: AbstractBlock):
+    def retrieve_all(self):
         ...
 
-    def clean(self, config):
-        return config
+    @abstractmethod
+    def register(self, key):
+        ...

@@ -2,7 +2,7 @@ import logging
 
 import click
 
-logger = logging.getLogger(__name__, )
+logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
@@ -11,23 +11,18 @@ logger.setLevel(logging.DEBUG)
 @click.option('--template', default='config.tmpl', help='template file location')
 @click.option('--output', default=None, help='rendered file location')
 def cli(file, template, output):
-    import toml, pprint
+    import toml
 
-    from confg.engine import validate_config, do
+    from confg.engine import ingest_config, resolve_config
 
     with open(file) as fd:
         config = toml.load(fd)
 
-    validate_config(config)
+    config = ingest_config(config)
 
-    blocks, reduced = do(config)
+    data = resolve_config(config)
 
-    print('\n\n -- debug --')
-    pprint.pprint(config)
-    pprint.pprint(blocks)
-    pprint.pprint(reduced)
-
-    print(toml.dumps(reduced))
+    print(toml.dumps(data))
 
 
 if __name__ == '__main__':

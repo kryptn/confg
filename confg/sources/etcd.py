@@ -1,6 +1,6 @@
 import etcd
 
-from confg._abc import AbstractSource
+from confg.sources.base import Source
 
 
 class EtcdSourceConfigError(Exception):
@@ -14,23 +14,18 @@ def read_or_none(client: etcd.client, key, **args):
         return None
 
 
-class EtcdSource(AbstractSource):
+class EtcdSource(Source):
 
     def __init__(self, **client_config):
+        super().__init__(**client_config)
         config = client_config or {}
         if not self.verify_config(client_config):
             raise EtcdSourceConfigError()
 
         self.client = etcd.Client(**config)
 
-    def render_slug(self, slug, **args):
-        return read_or_none(self.client, slug, **args)
-
-    def render(self, key_slugs):
-        items = {}
-        for key, slug in key_slugs.items():
-            items[key] = self.render_slug(slug)
-        return items
+    def retrieve(self, lookup, **args):
+        return read_or_none(self.client, lookup, **args)
 
     @staticmethod
     def verify_config(config):
