@@ -1,0 +1,25 @@
+
+
+[backend.env_file]
+file=".env"
+source="env"
+
+[backend.local_etcd]
+source = 'etcd'
+host = '0.0.0.0'
+port = 2379
+
+
+[web_host]
+backend="env_file"
+priority = 3
+
+
+    [web_host.keys]
+    host = "HOST"
+    port = "PORT"
+
+    [web_host.keys.server_mode]
+    lookup = '/confg/default_service/server_mode'
+    backend = 'local_etcd'
+
