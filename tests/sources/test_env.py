@@ -1,5 +1,5 @@
 import pytest
-from hypothesis import given, strategies as s, assume
+from hypothesis import given, strategies as s
 
 from confg.sources.env import parse_line, read_envs_from_file
 
@@ -13,10 +13,12 @@ def env_key(draw, key=s.text(min_size=1), value=s.text(min_size=1)):
     test = f"{ex_key}={ex_value}"
     return test, {ex_key: ex_value}
 
+
 @given(env_key())
 def test_parse_line(line_expected):
     line, expected = line_expected
     assert parse_line(line) == expected
+
 
 @s.composite
 def env_file(draw, line=env_key()):
@@ -29,7 +31,6 @@ def env_file(draw, line=env_key()):
 
     env_file_contents = '\n'.join(lines)
     return env_file_contents, items, expected
-
 
 
 @given(file_data_expected=env_file())
@@ -54,5 +55,3 @@ def test_EnvSource_from_file():
 
 def test_EnvSource_file_and_env():
     pass
-
-

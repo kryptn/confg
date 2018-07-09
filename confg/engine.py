@@ -26,7 +26,7 @@ def check_config(config) -> (bool, list):
 Config = namedtuple('Confg', ('backends', 'groups'))
 
 
-def ingest_config(config):
+def ingest_v1_config(config):
     valid, results = check_config(config)
     if not valid:
         logger.error(results)
