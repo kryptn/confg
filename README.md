@@ -1,6 +1,8 @@
 # Confg
 
-sorta like confd but able to use multiple backend sources. Wrote my own
+### Config Gatherer
+
+Inspiration from confd but able to use multiple backend sources. Wrote my own
 because [confd will not support multiple backends.][1]
 
 ## Concepts
@@ -22,7 +24,6 @@ Groups must provide a backend that matches one defined within the
 ```
 [web_config]
 backend = "env_backend"
-
 ```
 
 
@@ -110,6 +111,7 @@ outputs:
 - allow stacking input configs
 - output to more than toml
 - decide if i want to redo command.go
+- ci/cd
 - determine what top-level keys i need to reserve
   - known: `version`, `backend`
   - everything else is considered a group
