@@ -1,0 +1,4 @@
+[web_config]
+  db_url = "localhost"
+  host = "localhost"
+  port = "8080"

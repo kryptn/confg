@@ -1,0 +1,13 @@
+[backend.env_backend]
+source = "env"
+
+[web_config]
+backend = "env_backend"
+
+[web_config.keys]
+host = "HTTP_HOST"
+port = "HTTP_PORT"
+
+[web_config.keys.db_url]
+lookup = "DATABASE_URL"
+default = "localhost"
