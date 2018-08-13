@@ -22,8 +22,8 @@ func (o okays) All() bool {
 }
 
 func (c *Confg) Validate() (bool, []error) {
-	oks := []bool{}
-	errors := []error{}
+	var oks []bool
+	var errors []error
 	for _, backend := range c.Backends {
 		ok, errs := backend.Validate()
 		oks = append(oks, ok)
