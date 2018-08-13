@@ -3,6 +3,7 @@ package env_test
 import (
 	"github.com/kryptn/confg/containers"
 	"github.com/kryptn/confg/source/env"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -36,34 +37,85 @@ var envKeyTests = []EnvKeyTest{
 }
 
 type testSourceClient interface {
-	Register(key *containers.Key)
-	Collect() []*containers.Key
+	Gather([]*containers.Key)
+	Lookup(lookup string) (interface{}, bool)
 }
 
-func TestEnvSource_Collect(t *testing.T) {
-	for _, test := range envKeyTests {
-		if test.set {
-			os.Setenv(test.target, test.given)
+func TestEnvSource_Lookup(t *testing.T) {
+
+}
+
+func TestEnvSource_Gather(t *testing.T) {
+
+}
+
+type kv struct {
+	key, value string
+}
+
+type envGetTest struct {
+	useFile      bool
+	fileContents string
+	envContents  []kv
+	backend      *containers.Backend
+	expectError  bool
+	testKey      string
+	expValue     string
+}
+
+var envGetTests = map[string]envGetTest{
+	"get with file": {
+		useFile:      true,
+		fileContents: "a=c\n",
+		envContents:  []kv{{"a", "b"}},
+		backend:      &containers.Backend{Source: "env"},
+		testKey:      "a",
+		expValue:     "c",
+	},
+	"get without file": {
+		useFile:     false,
+		envContents: []kv{{"a", "b"}},
+		backend:     &containers.Backend{Source: "env"},
+		testKey:     "a",
+		expValue:    "b",
+	},
+	"no source defined fail": {
+		backend:     &containers.Backend{},
+		expectError: true,
+	},
+}
+
+func TestGet(t *testing.T) {
+	for desc, test := range envGetTests {
+		if test.useFile {
+			tf, err := ioutil.TempFile("/tmp", "confg")
+			if err != nil {
+				t.Logf("Issue when making temp file")
+				t.FailNow()
+			}
+			defer tf.Close()
+			tf.WriteString(test.fileContents)
+			test.backend.EnvFile = tf.Name()
+		}
+		for _, kv := range test.envContents {
+			os.Setenv(kv.key, kv.value)
 		}
 
-		es, _ := env.Get(&containers.Backend{Source: "env"})
+		es, err := env.Get(test.backend)
+		if err != nil && !test.expectError {
+			t.Logf("%s -- failed on get", desc)
+			t.Fail()
+		}
+		if test.expectError {
+			continue
+		}
 
-		es.Register(test.key)
-		result := es.Collect()
-		if result[0].Value != test.expected {
-			t.Logf("Expected %v got %v", test.expected, result[0].Value)
+		result, ok := es.Lookup(test.testKey)
+		if !ok || result.(string) != test.expValue {
+			t.Logf("%s -- failed on lookup", desc)
 			t.Fail()
 		}
 
 	}
-}
-
-type envGetTests struct {
-
-}
-
-func TestGet(t *testing.T) {
-
-
 
 }

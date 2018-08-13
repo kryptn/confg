@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/BurntSushi/toml"
+	"github.com/kryptn/confg/containers"
 	"github.com/kryptn/confg/parser"
 	"io/ioutil"
 	"log"
@@ -34,13 +35,32 @@ func main() {
 	}
 	log.Print("Parsed settings")
 
-	confg, err := confgFromParsed(parsed)
-	if confg != nil {
-		log.Printf("confg rendered: %+v", confg.Rendered)
+	confg := containers.Confg{
+		Backends: parsed.Backends,
+		Keys:     parsed.Keys,
+	}
+
+	log.Printf("made confg")
+
+	ok, errs := confg.Validate()
+	if errs != nil {
+		for _, err := range errs {
+			log.Print(err)
+		}
+	}
+	if !ok {
+		log.Fatal("Due to above errors, cannot continue")
+	}
+
+	GatherAllKeys(confg)
+
+	err = confg.ReduceKeys()
+	if err != nil {
+		log.Printf("error when reducing %v", err)
 	}
 
 	buf := new(bytes.Buffer)
-	if err := toml.NewEncoder(buf).Encode(confg.Rendered); err != nil {
+	if err := toml.NewEncoder(buf).Encode(confg.Reduced); err != nil {
 		log.Fatal(err)
 	}
 	err = ioutil.WriteFile(settings.outputFile, buf.Bytes(), 0644)
@@ -48,6 +68,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Print(buf)
+	log.Printf("\nconfig output: \n%s", buf)
 
 }

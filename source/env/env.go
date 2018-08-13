@@ -2,57 +2,83 @@ package env
 
 import (
 	"errors"
-	"fmt"
 	"github.com/kryptn/confg/containers"
+	"io/ioutil"
 	"os"
+	"strings"
 )
 
 type EnvSource struct {
-	keys []*containers.Key
-
-
+	env map[string]string
 }
 
-func readEnvFromKey(key *containers.Key) {
-	if key.Default != nil {
-		key.Value = key.Default
-	}
-	value, resolved := os.LookupEnv(key.Lookup)
-	key.Resolved = resolved
-	if resolved {
-		key.Value = value
-	}
-
-	fmt.Printf("before -- name: %s, %+v\n", key.Key, key)
-	result := os.Getenv(key.Lookup)
-	if result != "" {
-		key.Value = result
-	}
-	fmt.Printf("after  -- name: %s, %+v\n", key.Key, key)
-}
-
-func (es *EnvSource) Register(key *containers.Key) {
-	es.keys = append(es.keys, key)
-}
-
-func (es *EnvSource) Resolve() {
-
-	for _, key := range es.keys {
-		fmt.Printf("resolving source: %s, key: %s\n", key.Backend, key.Key)
-		readEnvFromKey(key)
+func (es EnvSource) insertMapping(mapping map[string]string) {
+	for key, value := range mapping {
+		es.env[key] = value
 	}
 }
 
-func (es *EnvSource) Collect() []*containers.Key {
-	es.Resolve()
-	return es.keys
+func mappingFromEnvLines(lines []string) map[string]string {
+	mapping := map[string]string{}
+	for _, envLine := range lines {
+		isEmpty := envLine == ""
+		doesNotAssign := !strings.Contains(envLine, "=")
+		comment := strings.HasPrefix(envLine, "#")
+
+		if isEmpty || doesNotAssign || comment {
+			continue
+		}
+
+		keyValue := strings.SplitN(envLine, "=", 2)
+		//log.Printf("-- KEYVALUE -- %+v", keyValue)
+		key := strings.TrimSpace(keyValue[0])
+		value := strings.TrimSpace(keyValue[1])
+		mapping[key] = value
+	}
+	return mapping
+}
+
+func (es EnvSource) projectFromFile(filename string) error {
+	rawContent, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	content := string(rawContent)
+	lines := strings.Split(content, "\n")
+	mapping := mappingFromEnvLines(lines)
+	es.insertMapping(mapping)
+	return nil
+}
+
+func (es EnvSource) projectEnv() error {
+	mapping := mappingFromEnvLines(os.Environ())
+	es.insertMapping(mapping)
+	return nil
+}
+
+func (es *EnvSource) Lookup(lookup string) (interface{}, bool) {
+	value, ok := es.env[lookup]
+	return value, ok
+}
+
+func (es *EnvSource) Gather(keys []*containers.Key) {
+	for _, key := range keys {
+		v, ok := es.Lookup(key.Lookup)
+		key.Inject(v, ok)
+	}
 }
 
 func Get(backend *containers.Backend) (*EnvSource, error) {
 	if backend.Source != "env" {
 		return nil, errors.New("source.env invalid backend")
 	}
+	es := &EnvSource{map[string]string{}}
 
+	es.projectEnv()
 
-	return &EnvSource{[]*containers.Key{}}, nil
+	if backend.EnvFile != "" {
+		es.projectFromFile(backend.EnvFile)
+	}
+
+	return es, nil
 }
