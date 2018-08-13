@@ -16,6 +16,8 @@ type Backend struct {
 
 	Hosts []string
 	Ports []int
+
+	AwsRegion string
 }
 
 func (b Backend) Validate() (bool, []error) {

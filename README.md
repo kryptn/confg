@@ -104,20 +104,18 @@ outputs:
 
 ### To do
 
-- make env source read from file too
-- i don't like the `confgFromParsed` like functions
-- add more sources (etcd and aws ssm for sure)
 - add prefixing within groups
+  - would be useful for ssm and etcd
 - allow stacking input configs
+  - might need namespacing backends
+  - name collisions on groups would be intentional
 - output to more than toml
+  - json and yaml?
 - decide if i want to redo command.go
 - ci/cd
+- add `[group.defaults]` and `[defaults]`
 - determine what top-level keys i need to reserve
-  - known: `version`, `backend`
+  - known: `version`, `backend`, `defaults`
   - everything else is considered a group
-- should I add a `[group.defaults]`?
-  - leaning towards yes.
-- should I add a root level `[keys]`?
-  - leaning towards no
 
 [1]: https://github.com/kelseyhightower/confd/issues/414#issuecomment-232388171
