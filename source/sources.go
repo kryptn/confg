@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/kryptn/confg/containers"
 	envSource "github.com/kryptn/confg/source/env"
+	etcdSource "github.com/kryptn/confg/source/etcd"
 	"log"
 )
 
@@ -19,6 +20,8 @@ func GetSource(backend *containers.Backend) (SourceClient, error) {
 	switch backend.Source {
 	case "env":
 		client, err = envSource.Get(backend)
+	case "etcd":
+		client, err = etcdSource.Get(backend)
 	default:
 		client, err = nil, errors.New("invalid source")
 	}

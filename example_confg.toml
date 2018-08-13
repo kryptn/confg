@@ -1,13 +1,32 @@
+
+
 [backend.env_backend]
 source = "env"
 
+[backend.shared_etcd]
+source = "etcd"
+hosts = ["http://localhost:2379"]
+
 [web_config]
 backend = "env_backend"
+priority = 5
 
-[web_config.keys]
-host = "HTTP_HOST"
-port = "HTTP_PORT"
+  [web_config.keys]
+  host = "HTTP_HOST"
+  port = "HTTP_PORT"
 
-[web_config.keys.db_url]
-lookup = "DATABASE_URL"
-default = "localhost"
+  [web_config.keys.db_url]
+  lookup = "DATABASE_URL"
+  default = "localhost"
+
+[shared_config]
+backend = "shared_etcd"
+priority = 10
+
+  [shared_config.keys.host]
+  dest = "web_config"
+  lookup = "/web/service/host"
+
+  [shared_config.keys.port]
+  dest = "web_config"
+  lookup = "/web/service/port"

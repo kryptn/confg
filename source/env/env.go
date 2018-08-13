@@ -18,22 +18,35 @@ func (es EnvSource) insertMapping(mapping map[string]string) {
 	}
 }
 
+type keyPair struct {
+	key, value string
+}
+
+func parseEnvLine(line string) (keyPair, bool) {
+	kp := keyPair{}
+	if line == "" {
+		return kp, false
+	}
+	if !strings.Contains(line, "=") {
+		return kp, false
+	}
+	if strings.HasPrefix(line, "#") {
+		return kp, false
+	}
+
+	split := strings.SplitN(line, "=", 2)
+	kp.key = strings.TrimSpace(split[0])
+	kp.value = strings.TrimSpace(split[1])
+	return kp, true
+}
+
 func mappingFromEnvLines(lines []string) map[string]string {
 	mapping := map[string]string{}
-	for _, envLine := range lines {
-		isEmpty := envLine == ""
-		doesNotAssign := !strings.Contains(envLine, "=")
-		comment := strings.HasPrefix(envLine, "#")
-
-		if isEmpty || doesNotAssign || comment {
-			continue
+	for _, line := range lines {
+		kp, ok := parseEnvLine(line)
+		if ok {
+			mapping[kp.key] = kp.value
 		}
-
-		keyValue := strings.SplitN(envLine, "=", 2)
-		//log.Printf("-- KEYVALUE -- %+v", keyValue)
-		key := strings.TrimSpace(keyValue[0])
-		value := strings.TrimSpace(keyValue[1])
-		mapping[key] = value
 	}
 	return mapping
 }
