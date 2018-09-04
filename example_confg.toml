@@ -28,5 +28,7 @@ priority = 10
   lookup = "/web/service/host"
 
   [shared_config.keys.port]
+  source = "secret_etcd"
   dest = "web_config"
   lookup = "/web/service/port"
+  default = 9095

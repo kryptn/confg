@@ -17,6 +17,21 @@ func keyFromGroup(g *group, keyName string) containers.Key {
 	return key
 }
 
+func (p *Parser) parseKeys() (fatal bool, err error) {
+	groups := p.parseGroups()
+
+	for _, group := range groups {
+		for keyName, keyPrimitive := range group.Keys {
+			key, err := decodeKey(group, keyName, keyPrimitive, p.md)
+			if err != nil {
+				continue
+			}
+			p.confg.Keys = append(p.confg.Keys, key)
+		}
+	}
+	return false, nil
+}
+
 func complexKey(g *group, keyName string, prim toml.Primitive, md toml.MetaData) (*containers.Key, error) {
 	key := keyFromGroup(g, keyName)
 	if err := md.PrimitiveDecode(prim, &key); err != nil {
@@ -47,21 +62,3 @@ func decodeKey(g *group, keyName string, prim toml.Primitive, md toml.MetaData) 
 	}
 	return key, err
 }
-
-//func OmDecodeKey(g group, keyName string, prim toml.Primitive, md toml.MetaData) (kc *containers.Key, err error) {
-//	key := keyFromGroup(g, keyName)
-//
-//	tomlKey := fmt.Sprintf("%s.keys.%s", g.Name, keyName)
-//	switch md.Type(tomlKey) {
-//	case "Hash":
-//		log.Print("hash type")
-//		err = md.PrimitiveDecode(prim, &key)
-//	default:
-//		log.Print("another type")
-//		err = md.PrimitiveDecode(prim, &key.Lookup)
-//	}
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &key, nil
-//}

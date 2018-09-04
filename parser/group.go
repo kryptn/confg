@@ -9,7 +9,7 @@ type group struct {
 	Keys     map[string]toml.Primitive
 }
 
-func (p *Parsed) parseGroup(name string, primitive toml.Primitive) (*group, error) {
+func (p *Parser) parseGroup(name string, primitive toml.Primitive) (*group, error) {
 	g := group{Name: name}
 	if err := p.md.PrimitiveDecode(primitive, &g); err != nil {
 		return nil, err
@@ -17,17 +17,19 @@ func (p *Parsed) parseGroup(name string, primitive toml.Primitive) (*group, erro
 	return &g, nil
 }
 
-func (p *Parsed) parseGroups() (map[string]*group, error) {
+func (p *Parser) parseGroups() map[string]*group {
 	groups := map[string]*group{}
-	for name, primitive := range p.root {
-		if _, protected := protectedKeys[name]; protected {
+
+	for key, primitive := range p.root {
+		if _, protected := protectedKeys[key]; protected {
 			continue
 		}
-		parsedGroup, err := p.parseGroup(name, primitive)
+		group, err := p.parseGroup(key, primitive)
 		if err != nil {
 			continue
 		}
-		groups[name] = parsedGroup
+		groups[key] = group
 	}
-	return groups, nil
+
+	return groups
 }

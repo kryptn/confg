@@ -1,73 +1,48 @@
 package main
 
 import (
-	"bytes"
-	"github.com/BurntSushi/toml"
 	"github.com/kryptn/confg/containers"
+	"github.com/kryptn/confg/gatherer"
 	"github.com/kryptn/confg/parser"
-	"io/ioutil"
 	"log"
 )
 
-var logLevel = logErr
+func allConfgs(inputFiles []string) []*containers.Confg {
+	var confgs []*containers.Confg
+	for _, inputFile := range inputFiles {
+		confg, err := parser.ConfgFromFile(inputFile)
+		if err != nil {
+			log.Printf("Error with [%s] input file: %v", inputFile, err)
+		}
+		confgs = append(confgs, confg)
+	}
+	return confgs
+}
 
 func main() {
-	log.Print("Starting")
-	settings, err := getSettings()
+	// get run settings from cli
+	settings, err := GetSettings()
 	if err != nil {
 		log.Fatal(err)
 	}
-	logLevel = settings.verbosity
-	log.Print("Got settings")
+	log.Printf("Settings: %+v", settings)
 
-	parsed, err := parser.ParsedFromFile(settings.inputFile)
+	// each input file is successively applied on top of the previous
+	collected := (&containers.Confg{}).Overlay(allConfgs(settings.inputFiles)...)
+	log.Printf("collected: %+v", collected)
+
+	// attempt to resolve each key
+	gather := gatherer.NewGatherer(collected)
+	resolved, err := gather.Resolve()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if parsed != nil {
-		log.Printf("parsed backends: %+v", parsed.Backends)
-		log.Printf("parsed keys: %+v", parsed.Keys)
-	}
+	log.Printf("resolved: %+v", resolved)
 
-	err = parsed.Parse()
+	reduced, err := resolved.Reduce()
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Print("Parsed settings")
-
-	confg := containers.Confg{
-		Backends: parsed.Backends,
-		Keys:     parsed.Keys,
-	}
-
-	log.Printf("made confg")
-
-	ok, errs := confg.Validate()
-	if errs != nil {
-		for _, err := range errs {
-			log.Print(err)
-		}
-	}
-	if !ok {
-		log.Fatal("Due to above errors, cannot continue")
-	}
-
-	GatherAllKeys(confg)
-
-	err = confg.ReduceKeys()
-	if err != nil {
-		log.Printf("error when reducing %v", err)
-	}
-
-	buf := new(bytes.Buffer)
-	if err := toml.NewEncoder(buf).Encode(confg.Reduced); err != nil {
-		log.Fatal(err)
-	}
-	err = ioutil.WriteFile(settings.outputFile, buf.Bytes(), 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("\nconfig output: \n%s", buf)
+	log.Printf("reduced: %+v", reduced)
 
 }

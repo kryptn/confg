@@ -17,6 +17,10 @@ type Key struct {
 
 	Dest    string
 	Backend string
+
+	Meta struct {
+		reason string
+	}
 }
 
 func (k *Key) Prepare() {

@@ -1,24 +1,18 @@
 package parser
 
 import (
-	"github.com/BurntSushi/toml"
-	"github.com/kryptn/confg/containers"
+	"errors"
 )
 
-func parseBackends(prim toml.Primitive, md toml.MetaData) ([]*containers.Backend, error) {
-	backends := map[string]*containers.Backend{}
-
-	err := md.PrimitiveDecode(prim, &backends)
+func (p *Parser) parseBackends() (fatal bool, err error) {
+	backendPrimitive, ok := p.root["backend"]
+	if !ok {
+		return false, errors.New("parser.backend: no backend defined")
+	}
+	err = p.md.PrimitiveDecode(backendPrimitive, &p.confg.Backends)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	be := []*containers.Backend{}
-	for name, backend := range backends {
-		backend.Name = name
-		be = append(be, backend)
-	}
-
-	return be, nil
-
+	return false, nil
 }

@@ -3,18 +3,23 @@ package source
 import (
 	"errors"
 	"github.com/kryptn/confg/containers"
+
 	envSource "github.com/kryptn/confg/source/env"
 	etcdSource "github.com/kryptn/confg/source/etcd"
-	"log"
 )
 
-type SourceClient interface {
-	Gather([]*containers.Key)
+var sources map[string]Client
+
+func init() {
+	sources = map[string]Client{}
+}
+
+type Client interface {
 	Lookup(lookup string) (interface{}, bool)
 }
 
-func GetSource(backend *containers.Backend) (SourceClient, error) {
-	var client SourceClient
+func getSource(backend *containers.Backend) (Client, error) {
+	var client Client
 	var err error
 
 	switch backend.Source {
@@ -29,33 +34,16 @@ func GetSource(backend *containers.Backend) (SourceClient, error) {
 	return client, err
 }
 
-var sources = map[string]SourceClient{}
-
-func getOrInitSource(backend *containers.Backend) (SourceClient, error) {
+func GetSource(backend *containers.Backend) (Client, error) {
 	source, ok := sources[backend.Source]
 	if ok {
 		return source, nil
 	}
 
-	source, err := GetSource(backend)
+	source, err := getSource(backend)
 	if err != nil {
 		return nil, err
 	}
 	sources[backend.Source] = source
 	return source, nil
-}
-
-func Gather(backend *containers.Backend, keys []*containers.Key) error {
-	source, err := getOrInitSource(backend)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("source %+v", source)
-	log.Printf("keys %+v", keys)
-	for _, key := range keys {
-		log.Printf("-- key %+v", key)
-	}
-	source.Gather(keys)
-	return nil
 }
