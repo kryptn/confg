@@ -1,1 +1,1 @@
-../../confg -f defaults.toml -f local.toml -f prod.toml -o settings.toml
+HTTP_HOST=localhost HTTP_PORT=9090 ../../confg -f defaults.toml -f local.toml -f prod.toml -o settings.toml
