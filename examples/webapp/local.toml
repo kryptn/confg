@@ -1,0 +1,36 @@
+
+
+[backend.environment]
+source = "env"
+
+[backend.shared_etcd]
+source = "etcd"
+hosts = ["http://localhost:2379"]
+
+
+[web]
+backend = "environment"
+
+  [web.keys]
+  host = "HTTP_HOST"
+  port = "HTTP_PORT"
+
+
+[data]
+backend = "shared_etcd"
+
+  [data.keys]
+  db_url = "DATABASE_URL"
+
+
+[prod_data]
+backend = "secret_env"
+priority = 100
+
+  [prod_data.keys.db_url]
+  lookup = "DATABASE_URL"
+  dest = "data"
+
+  [prod_data.keys.server_mode]
+  lookup = "SERVER_MODE"
+  dest = "runtime"

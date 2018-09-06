@@ -2,6 +2,7 @@ package env
 
 import (
 	"errors"
+	"fmt"
 	"github.com/kryptn/confg/containers"
 	"io/ioutil"
 	"os"
@@ -69,16 +70,13 @@ func (es EnvSource) projectEnv() error {
 	return nil
 }
 
-func (es *EnvSource) Lookup(lookup string) (interface{}, bool) {
+func (es *EnvSource) Lookup(lookup string) (interface{}, error) {
 	value, ok := es.env[lookup]
-	return value, ok
-}
-
-func (es *EnvSource) Gather(keys []*containers.Key) {
-	for _, key := range keys {
-		v, ok := es.Lookup(key.Lookup)
-		key.Inject(v, ok)
+	if !ok {
+		errorText := fmt.Sprintf("confg.source.env lookup error: %s", lookup)
+		return nil, errors.New(errorText)
 	}
+	return value, nil
 }
 
 func Get(backend *containers.Backend) (*EnvSource, error) {

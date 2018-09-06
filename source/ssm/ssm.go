@@ -30,13 +30,6 @@ func (ss *SsmSource) Lookup(lookup string) (interface{}, bool) {
 	return value, true
 }
 
-func (ss *SsmSource) Gather(keys []*containers.Key) {
-	for _, key := range keys {
-		v, ok := ss.Lookup(key.Lookup)
-		key.Inject(v, ok)
-	}
-}
-
 func Get(backend *containers.Backend) (*SsmSource, error) {
 	if backend.Source != "ssm" {
 		return nil, errors.New("source.ssm invalid backend")

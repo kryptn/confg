@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/kryptn/confg/containers"
+	"log"
 )
 
-func keyFromGroup(g *group, keyName string) containers.Key {
+func initKey(g *group, keyName string) containers.Key {
 	key := containers.Key{
 		Key:      keyName,
 		Priority: g.Priority,
@@ -17,48 +18,46 @@ func keyFromGroup(g *group, keyName string) containers.Key {
 	return key
 }
 
+func (p *Parser) checkForDefault(key *containers.Key) {
+	if _, ok := p.defaults[key.Dest]; ok {
+		if value, ok := p.defaults[key.Dest][key.Key]; ok {
+			key.Default = value
+		}
+	}
+}
+
 func (p *Parser) parseKeys() (fatal bool, err error) {
 	groups := p.parseGroups()
 
 	for _, group := range groups {
 		for keyName, keyPrimitive := range group.Keys {
-			key, err := decodeKey(group, keyName, keyPrimitive, p.md)
+			key := initKey(group, keyName)
+
+			err := decodeKey(&key, keyPrimitive, p.md)
 			if err != nil {
+				log.Printf("error on decode: %v", err)
 				continue
 			}
-			p.confg.Keys = append(p.confg.Keys, key)
+
+			if key.Default == nil {
+				p.checkForDefault(&key)
+			}
+
+			p.confg.Keys = append(p.confg.Keys, &key)
 		}
 	}
 	return false, nil
 }
 
-func complexKey(g *group, keyName string, prim toml.Primitive, md toml.MetaData) (*containers.Key, error) {
-	key := keyFromGroup(g, keyName)
-	if err := md.PrimitiveDecode(prim, &key); err != nil {
-		return nil, err
-	}
-	fmt.Printf("complx key -- name: %s, %+v\n", keyName, key)
-	return &key, nil
-}
-
-func simpleKey(g *group, keyName string, prim toml.Primitive, md toml.MetaData) (*containers.Key, error) {
-	key := keyFromGroup(g, keyName)
-	var lookup string
-	if err := md.PrimitiveDecode(prim, &lookup); err != nil {
-		return nil, err
-	}
-	key.Lookup = lookup
-	fmt.Printf("simple key -- name: %s, %+v\n", keyName, key)
-	return &key, nil
-}
-
-func decodeKey(g *group, keyName string, prim toml.Primitive, md toml.MetaData) (key *containers.Key, err error) {
-	tomlKey := fmt.Sprintf("%s.keys.%s", g.Name, keyName)
+func decodeKey(key *containers.Key, primitive toml.Primitive, md toml.MetaData) (err error) {
+	tomlKey := fmt.Sprintf("%s.keys.%s", key.Dest, key.Key)
 	switch md.Type(tomlKey) {
 	case "Hash":
-		key, err = complexKey(g, keyName, prim, md)
+		err = md.PrimitiveDecode(primitive, key)
 	default:
-		key, err = simpleKey(g, keyName, prim, md)
+		var lookup string
+		err = md.PrimitiveDecode(primitive, &lookup)
+		key.Lookup = lookup
 	}
-	return key, err
+	return err
 }

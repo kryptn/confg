@@ -15,7 +15,7 @@ func init() {
 }
 
 type Client interface {
-	Lookup(lookup string) (interface{}, bool)
+	Lookup(lookup string) (interface{}, error)
 }
 
 func getSource(backend *containers.Backend) (Client, error) {

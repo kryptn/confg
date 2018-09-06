@@ -1,0 +1,10 @@
+
+[default.web]
+host = '0.0.0.0'
+port = 8080
+
+[default.data]
+db_url = "postgresql://localhost"
+
+[default.runtime]
+server_mode = "development"

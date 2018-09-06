@@ -37,15 +37,10 @@ var envKeyTests = []EnvKeyTest{
 }
 
 type testSourceClient interface {
-	Gather([]*containers.Key)
 	Lookup(lookup string) (interface{}, bool)
 }
 
 func TestEnvSource_Lookup(t *testing.T) {
-
-}
-
-func TestEnvSource_Gather(t *testing.T) {
 
 }
 
@@ -110,8 +105,8 @@ func TestGet(t *testing.T) {
 			continue
 		}
 
-		result, ok := es.Lookup(test.testKey)
-		if !ok || result.(string) != test.expValue {
+		result, err := es.Lookup(test.testKey)
+		if err != nil || result.(string) != test.expValue {
 			t.Logf("%s -- failed on lookup", desc)
 			t.Fail()
 		}

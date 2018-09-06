@@ -19,21 +19,27 @@ type Key struct {
 	Backend string
 
 	Meta struct {
-		reason string
+		Reason string
 	}
 }
 
-func (k *Key) Prepare() {
-	if k.Default != nil {
-		k.Value = k.Default
-	}
-}
+type ClientGetter func(string) (interface{}, error)
 
-func (k *Key) Inject(v interface{}, ok bool) {
-	k.Resolved = ok
-	if ok {
-		k.Value = v
+func (k *Key) Resolve(getter ClientGetter) {
+	// attempt to resolve value -- if an error is returned consider
+	// the resolution a failure but set the value if not nil
+	value, err := getter(k.Lookup)
+
+	if value != nil {
+		k.Value = value
 	}
+
+	if err != nil {
+		k.Meta.Reason = err.Error()
+	}
+
+	// consider resolved only if a returned value and no error
+	k.Resolved = value != nil && err == nil
 }
 
 func (k *Key) Validate() (bool, []error) {
@@ -61,13 +67,29 @@ func (ks KeySet) Swap(i, j int) {
 }
 
 func (ks KeySet) Less(i, j int) bool {
-	if ks[i].Resolved != ks[j].Resolved {
-		if ks[j].Resolved {
-			return false
-		}
-		return true
+	// priority order:
+	// first check resolved: if both, priority, otherwise the resolved one is true
+	// then check if they have a value at all, if both then priority, if one use that one
+
+	left, right := ks[i], ks[j]
+
+	if left.Resolved && right.Resolved {
+		return left.Priority > right.Priority
 	}
-	return ks[i].Priority > ks[j].Priority
+
+	if left.Resolved || right.Resolved {
+		return left.Resolved
+	}
+
+	if left.Value != nil && right.Value != nil {
+		return left.Priority > right.Priority
+	}
+
+	if left.Value != nil || right.Value != nil {
+		return left.Value != nil
+	}
+
+	return left.Priority > right.Priority
 }
 
 func (ks KeySet) FirstValid() *Key {

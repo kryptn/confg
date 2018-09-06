@@ -28,7 +28,6 @@ func (c *Confg) ReduceKeys() error {
 	keySetAssigner := keyMappingAssigner(keySetMapping)
 
 	for _, key := range c.Keys {
-		key.Prepare()
 		keySetAssigner(key)
 	}
 

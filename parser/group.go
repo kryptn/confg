@@ -1,11 +1,14 @@
 package parser
 
-import "github.com/BurntSushi/toml"
+import (
+	"github.com/BurntSushi/toml"
+)
 
 type group struct {
 	Name     string
 	Backend  string
 	Priority int
+	Defaults map[string]interface{} `toml:"default"`
 	Keys     map[string]toml.Primitive
 }
 
@@ -28,6 +31,14 @@ func (p *Parser) parseGroups() map[string]*group {
 		if err != nil {
 			continue
 		}
+
+		for keyName, defaultValue := range group.Defaults {
+			if _, ok := p.defaults[group.Name]; !ok {
+				p.defaults[group.Name] = map[string]interface{}{}
+			}
+			p.defaults[group.Name][keyName] = defaultValue
+		}
+
 		groups[key] = group
 	}
 

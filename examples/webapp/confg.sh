@@ -1,0 +1,1 @@
+../../confg -f defaults.toml -f local.toml -f prod.toml -o settings.toml

@@ -1,12 +1,13 @@
 package gatherer
 
 import (
+	"fmt"
 	"github.com/kryptn/confg/containers"
 	"github.com/kryptn/confg/source"
 )
 
 type SourceClient interface {
-	Lookup(lookup string) (value interface{}, ok bool)
+	Lookup(lookup string) (value interface{}, err error)
 }
 
 type Gatherer struct {
@@ -27,17 +28,18 @@ func (g *Gatherer) Resolve() (*containers.Confg, error) {
 		backend, ok := g.confg.Backends[key.Backend]
 		if !ok {
 			key.Resolved = false
+			key.Meta.Reason = fmt.Sprintf("backend %s not declared", key.Backend)
 			continue
 		}
 
 		client, err := source.GetSource(backend)
 		if err != nil {
 			key.Resolved = false
+			key.Meta.Reason = fmt.Sprintf("source %s not declared", backend.Source)
 			continue
 		}
 
-		v, ok := client.Lookup(key.Lookup)
-		key.Inject(v, ok)
+		key.Resolve(client.Lookup)
 	}
 
 	return g.confg, nil
