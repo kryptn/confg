@@ -10,7 +10,7 @@ because [confd will not support multiple backends.][1]
 Backends are the containers for sources, where the values come from. all
 config values for the backend goes here.
 
-```
+```toml
 [backend.env_backend]
 source = "env"
 ```
@@ -21,7 +21,7 @@ each key.
 Groups must provide a backend that matches one defined within the
 `backend` map.
 
-```
+```toml
 [web_config]
 backend = "env_backend"
 ```
@@ -35,7 +35,7 @@ Because we're using the `env` source within `[backend.env_backend]` this
 will just look in the environment for `HTTP_HOST` and `HTTP_PORT`.
 
 
-```
+```toml
 [web_config.keys]
 host = "HTTP_HOST"
 port = "HTTP_PORT"
@@ -47,7 +47,7 @@ inheriting the group's defaults if not defined.
 Right now complex keys are the only way to set a default value for a
 key.
 
-```
+```toml
 [web_config.keys.db_url]
 lookup = "DATABASE_URL"
 default = "localhost"
@@ -56,7 +56,7 @@ default = "localhost"
 
 These keys are functionally equivalent:
 
-```
+```toml
 [web_config.keys]
 host = "HTTP_HOST"
 
@@ -74,7 +74,7 @@ dest = "web_config"
 
 example:
 
-```
+```toml
 [backend.env_backend]
 source = "env"
 
@@ -94,7 +94,7 @@ run with: `HTTP_HOST=localhost HTTP_PORT=8080 ./confg -f example_confg.toml -o e
 
 outputs:
 
-```
+```toml
 [web_config]
   db_url = "localhost"
   host = "localhost"
@@ -106,16 +106,8 @@ outputs:
 
 - add prefixing within groups
   - would be useful for ssm and etcd
-- allow stacking input configs
-  - might need namespacing backends
-  - name collisions on groups would be intentional
 - output to more than toml
   - json and yaml?
-- decide if i want to redo command.go
 - ci/cd
-- add `[group.defaults]` and `[defaults]`
-- determine what top-level keys i need to reserve
-  - known: `version`, `backend`, `defaults`
-  - everything else is considered a group
 
 [1]: https://github.com/kelseyhightower/confd/issues/414#issuecomment-232388171
