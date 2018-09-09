@@ -1,0 +1,9 @@
+[data]
+  db_url = "postgresql://some.secret.address"
+
+[runtime]
+  server_mode = "production"
+
+[web]
+  host = "localhost"
+  port = "9090"

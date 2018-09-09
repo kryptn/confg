@@ -1,9 +1,10 @@
 package containers_test
 
 import (
-	"github.com/kryptn/confg/containers"
 	"sort"
 	"testing"
+
+	"github.com/kryptn/confg/containers"
 )
 
 var priorityTest = []*containers.Key{
@@ -37,6 +38,15 @@ var manyConditions = []*containers.Key{
 	{Key: "fail", Priority: 17, Resolved: false},
 }
 
+var withDefaults = []*containers.Key{
+	{Key: "fail", Priority: 10, Resolved: false, Value: true},
+	{Key: "fail", Priority: 10, Resolved: false, Value: true},
+	{Key: "pass", Priority: 20, Resolved: true, Value: true},
+	{Key: "fail", Priority: 20, Resolved: false, Value: true},
+	{Key: "fail", Priority: 30, Resolved: false, Value: true},
+	{Key: "fail", Priority: 30, Resolved: false, Value: true},
+}
+
 type sortTest struct {
 	desc string
 	keys []*containers.Key
@@ -48,6 +58,7 @@ var sortTests = []sortTest{
 	{"first declared if same priority", samePriorityTest},
 	{"first declared first resolved if same priority", samePriorityFirstTest},
 	{"nothing specific", manyConditions},
+	{"lower priority resolved over higher unresolved with value", withDefaults},
 }
 
 func TestKeySet_Less(t *testing.T) {

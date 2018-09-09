@@ -1,9 +1,0 @@
-[data]
-  db_url = "postgresql://localhost"
-
-[runtime]
-  server_mode = "development"
-
-[web]
-  host = "localhost"
-  port = "9090"

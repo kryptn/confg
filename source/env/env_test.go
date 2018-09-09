@@ -67,12 +67,34 @@ var envGetTests = map[string]envGetTest{
 		testKey:      "a",
 		expValue:     "c",
 	},
+	"get with file -- invalid lines": {
+		useFile:      true,
+		fileContents: "a=c\nb\n#comment=true",
+		envContents:  []kv{{"a", "b"}},
+		backend:      &containers.Backend{Source: "env"},
+		testKey:      "a",
+		expValue:     "c",
+	},
+	"get with file -- invalid filename": {
+		useFile:      true,
+		fileContents: "a=c\nb\n#comment=true",
+		envContents:  []kv{{"a", "b"}},
+		backend:      &containers.Backend{Source: "env", EnvFile: "/tmp/112358"},
+		expectError:  true,
+	},
 	"get without file": {
 		useFile:     false,
 		envContents: []kv{{"a", "b"}},
 		backend:     &containers.Backend{Source: "env"},
 		testKey:     "a",
 		expValue:    "b",
+	},
+	"get unknown key": {
+		useFile:     false,
+		envContents: []kv{{"a", "b"}},
+		backend:     &containers.Backend{Source: "env"},
+		testKey:     "ccc",
+		expectError: true,
 	},
 	"no source defined fail": {
 		backend:     &containers.Backend{},
@@ -90,7 +112,9 @@ func TestGet(t *testing.T) {
 			}
 			defer tf.Close()
 			tf.WriteString(test.fileContents)
-			test.backend.EnvFile = tf.Name()
+			if test.backend.EnvFile == "" {
+				test.backend.EnvFile = tf.Name()
+			}
 		}
 		for _, kv := range test.envContents {
 			os.Setenv(kv.key, kv.value)
