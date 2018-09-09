@@ -6,6 +6,7 @@ import (
 	"github.com/kryptn/confg/containers"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -52,8 +53,18 @@ func mappingFromEnvLines(lines []string) map[string]string {
 	return mapping
 }
 
-func (es EnvSource) projectFromFile(filename string) error {
-	rawContent, err := ioutil.ReadFile(filename)
+func relPath(confgPath, envFile string) string {
+	if path.IsAbs(envFile) {
+		return envFile
+	}
+	return path.Join(path.Dir(confgPath), path.Clean(envFile))
+}
+
+func (es EnvSource) projectFromFile(confgPath, envFile string) error {
+
+	envFilePath := relPath(path.Clean(confgPath), envFile)
+
+	rawContent, err := ioutil.ReadFile(envFilePath)
 	if err != nil {
 		return err
 	}
@@ -88,7 +99,7 @@ func Get(backend *containers.Backend) (*EnvSource, error) {
 	es.projectEnv()
 
 	if backend.EnvFile != "" {
-		es.projectFromFile(backend.EnvFile)
+		es.projectFromFile(backend.ConfigPath, backend.EnvFile)
 	}
 
 	return es, nil

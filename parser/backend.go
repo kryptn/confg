@@ -14,5 +14,9 @@ func (p *Parser) parseBackends() (fatal bool, err error) {
 		return false, err
 	}
 
+	for _, backend := range p.confg.Backends {
+		backend.ConfigPath = p.path
+	}
+
 	return false, nil
 }

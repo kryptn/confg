@@ -8,6 +8,8 @@ import (
 type Parser struct {
 	confg *containers.Confg
 
+	path string
+
 	defaults map[string]map[string]interface{}
 
 	md   toml.MetaData
@@ -26,6 +28,7 @@ func ConfgFromFile(filename string) (*containers.Confg, error) {
 	parser := Parser{
 		confg: &containers.Confg{},
 		root:  map[string]toml.Primitive{},
+		path:  filename,
 	}
 
 	parser.md, err = toml.DecodeFile(filename, &parser.root)

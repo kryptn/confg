@@ -3,7 +3,6 @@ package source
 import (
 	"errors"
 	"github.com/kryptn/confg/containers"
-
 	envSource "github.com/kryptn/confg/source/env"
 	etcdSource "github.com/kryptn/confg/source/etcd"
 )
