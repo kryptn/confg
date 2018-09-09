@@ -2,8 +2,8 @@
 
 ### Config Gatherer
 
-Inspiration from confd but able to use multiple backend sources. Wrote my own
-because [confd will not support multiple backends.][1]
+Inspiration from confd but able to use multiple backend sources. Wrote
+my own because [confd will not support multiple backends.][1]
 
 ## Concepts
 
@@ -106,8 +106,15 @@ outputs:
 
 - add prefixing within groups
   - would be useful for ssm and etcd
+  - not sure how much i want to do this
 - output to more than toml
   - json and yaml?
+  - another package, new variable or read extension?
 - ci/cd
+- backend inheritance?
+- should the group function as a default key instead of its own type?
+  - would this open the door to recursive keys?
+- add a meta output
+
 
 [1]: https://github.com/kelseyhightower/confd/issues/414#issuecomment-232388171

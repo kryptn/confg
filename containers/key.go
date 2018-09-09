@@ -67,29 +67,35 @@ func (ks KeySet) Swap(i, j int) {
 }
 
 func (ks KeySet) Less(i, j int) bool {
-	// priority order:
-	// first check resolved: if both, priority, otherwise the resolved one is true
-	// then check if they have a value at all, if both then priority, if one use that one
-
+	// sorting so less is more, so higher preference
 	left, right := ks[i], ks[j]
 
-	if left.Resolved && right.Resolved {
+	preferPriority := func() bool {
 		return left.Priority > right.Priority
 	}
 
+	if left.Resolved && right.Resolved {
+		// if both resolved, take highest priority
+		return preferPriority()
+	}
+
 	if left.Resolved || right.Resolved {
+		// prefer the resolved value
 		return left.Resolved
 	}
 
 	if left.Value != nil && right.Value != nil {
-		return left.Priority > right.Priority
+		// if both unresolved (guaranteed) and both
+		// don't have a default defined
+		return preferPriority()
 	}
 
 	if left.Value != nil || right.Value != nil {
+		// prefer the one with the default defined
 		return left.Value != nil
 	}
 
-	return left.Priority > right.Priority
+	return preferPriority()
 }
 
 func (ks KeySet) FirstValid() *Key {
