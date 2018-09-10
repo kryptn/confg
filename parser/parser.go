@@ -37,31 +37,19 @@ func ConfgFromFile(filename string) (*containers.Confg, error) {
 		return nil, err
 	}
 
-	fatal, err = parser.parseBackends()
-	//log.Printf("parseBackends %t -- %+v", fatal, err)
-	if err != nil && fatal {
-		return nil, err
+	parseSteps := []func() (bool, error){
+		parser.parseBackends,
+		parser.parseDefaults,
+		parser.parseKeys,
+		parser.populateUndefinedDefaults,
+		parser.populateValuesWithDefaults,
 	}
 
-	fatal, err = parser.parseDefaults()
-	if err != nil && fatal {
-		return nil, err
-	}
-
-	fatal, err = parser.parseKeys()
-	//log.Printf("parseKeys %t -- %+v", fatal, err)
-	if err != nil && fatal {
-		return nil, err
-	}
-
-	fatal, err = parser.populateUndefinedDefaults()
-	if err != nil && fatal {
-		return nil, err
-	}
-
-	fatal, err = parser.populateValuesWithDefaults()
-	if err != nil && fatal {
-		return nil, err
+	for _, step := range parseSteps {
+		fatal, err = step()
+		if err != nil && fatal {
+			return nil, err
+		}
 	}
 
 	return parser.confg, nil

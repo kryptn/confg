@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bytes"
-	"github.com/BurntSushi/toml"
 	"github.com/kryptn/confg/containers"
 	"github.com/kryptn/confg/gatherer"
+	"github.com/kryptn/confg/outputter"
 	"github.com/kryptn/confg/parser"
-	"io/ioutil"
 	"log"
 )
 
@@ -54,11 +52,7 @@ func main() {
 	//
 	//fmt.Print("\n")
 
-	buf := new(bytes.Buffer)
-	if err := toml.NewEncoder(buf).Encode(reduced.Reduced); err != nil {
-		log.Fatal(err)
-	}
-	err = ioutil.WriteFile(settings.outputFile, buf.Bytes(), 0644)
+	err = outputter.Output(settings.outputFile, reduced.Reduced)
 	if err != nil {
 		log.Fatal(err)
 	}
