@@ -1,5 +1,7 @@
 # Confg
 
+[![Build Status](https://travis-ci.org/kryptn/confg.svg?branch=master)](https://travis-ci.org/kryptn/confg)
+
 ### Config Gatherer
 
 Inspiration from confd but able to use multiple backend sources. Wrote
