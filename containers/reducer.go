@@ -24,9 +24,10 @@ func reducedKeyMappingAssigner(mapping reducedKeyMapping) func(string, string, i
 }
 
 func (c *Confg) ReduceKeys() error {
+
+	// collect all keys into a list of the same
 	keySetMapping := make(keySetMapping)
 	keySetAssigner := keyMappingAssigner(keySetMapping)
-
 	for _, key := range c.Keys {
 		keySetAssigner(key)
 	}
@@ -45,4 +46,9 @@ func (c *Confg) ReduceKeys() error {
 	c.Reduced = reducedMapping
 
 	return nil
+}
+
+func (c *Confg) Reduce() (*Confg, error) {
+	c.ReduceKeys()
+	return c, nil
 }

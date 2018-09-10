@@ -1,7 +1,6 @@
 package containers
 
 import (
-	"errors"
 	"sort"
 )
 
@@ -40,20 +39,6 @@ func (k *Key) Resolve(getter ClientGetter) {
 
 	// consider resolved only if a returned value and no error
 	k.Resolved = value != nil && err == nil
-}
-
-func (k *Key) Validate() (bool, []error) {
-	ok := true
-	errs := []error{}
-	if k.Key == "" {
-		ok = false
-		errs = append(errs, errors.New("Key must be defined"))
-	}
-	if k.Lookup == "" {
-		ok = false
-		errs = append(errs, errors.New("Looup must be defined"))
-	}
-	return ok, errs
 }
 
 type KeySet []*Key

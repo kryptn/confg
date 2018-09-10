@@ -28,37 +28,3 @@ func (c *Confg) Overlay(others ...*Confg) *Confg {
 	}
 	return c
 }
-
-func (c *Confg) Reduce() (*Confg, error) {
-	c.ReduceKeys()
-	return c, nil
-}
-
-type okays []bool
-
-func (o okays) All() bool {
-	for _, ok := range o {
-		if !ok {
-			return false
-		}
-	}
-	return true
-}
-
-func (c *Confg) Validate() (bool, []error) {
-	var oks []bool
-	var errors []error
-	for _, backend := range c.Backends {
-		ok, errs := backend.Validate()
-		oks = append(oks, ok)
-		errors = append(errors, errs...)
-	}
-	for _, key := range c.Keys {
-		ok, errs := key.Validate()
-		oks = append(oks, ok)
-		errors = append(errors, errs...)
-	}
-
-	return okays(oks).All(), errors
-
-}

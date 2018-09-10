@@ -1,6 +1,7 @@
 package containers_test
 
 import (
+	"github.com/pkg/errors"
 	"sort"
 	"testing"
 
@@ -40,10 +41,10 @@ var manyConditions = []*containers.Key{
 
 var withDefaults = []*containers.Key{
 	{Key: "fail", Priority: 10, Resolved: false, Value: true},
-	{Key: "fail", Priority: 10, Resolved: false, Value: true},
+	{Key: "fail", Priority: 10, Resolved: false, Value: nil},
 	{Key: "pass", Priority: 20, Resolved: true, Value: true},
-	{Key: "fail", Priority: 20, Resolved: false, Value: true},
-	{Key: "fail", Priority: 30, Resolved: false, Value: true},
+	{Key: "fail", Priority: 20, Resolved: false, Value: nil},
+	{Key: "fail", Priority: 30, Resolved: false, Value: nil},
 	{Key: "fail", Priority: 30, Resolved: false, Value: true},
 }
 
@@ -69,5 +70,91 @@ func TestKeySet_Less(t *testing.T) {
 			t.Logf("%s: Expected \"pass\", got %s", test.desc, highest.Key)
 			t.Fail()
 		}
+	}
+}
+
+func TestKeySet_FirstValid(t *testing.T) {
+	for _, test := range sortTests {
+		keys := containers.KeySet(test.keys)
+		first := keys.FirstValid()
+		if first.Key != "pass" {
+			t.Logf("%s: Expected \"pass\", got %s", test.desc, first.Key)
+			t.Fail()
+		}
+	}
+
+	ks := containers.KeySet{}
+	first := ks.FirstValid()
+	if first != nil {
+		t.Logf("empty keyset should return nil")
+		t.Fail()
+	}
+}
+
+func getterReturns(v interface{}, err error) func(string) (v interface{}, err error) {
+	return func(s string) (interface{}, error) {
+		return v, err
+	}
+}
+
+type Result struct {
+	value    interface{}
+	resolved bool
+}
+
+type resolverTest struct {
+	key    *containers.Key
+	getter func(string) (v interface{}, err error)
+	result Result
+}
+
+var resolverTests = map[string]resolverTest{
+	"resolves value": {
+		key:    &containers.Key{},
+		getter: getterReturns("a", nil),
+		result: Result{"a", true},
+	},
+	"value and error": {
+		key:    &containers.Key{},
+		getter: getterReturns("a", errors.New("err")),
+		result: Result{"a", false},
+	},
+	"error": {
+		key:    &containers.Key{},
+		getter: getterReturns(nil, errors.New("err")),
+		result: Result{nil, false},
+	},
+	"default but resolves": {
+		key:    &containers.Key{Value: false},
+		getter: getterReturns(true, nil),
+		result: Result{true, true},
+	},
+	"defaults": {
+		key:    &containers.Key{Value: false},
+		getter: getterReturns(nil, errors.New("err")),
+		result: Result{false, false},
+	},
+}
+
+func tFuncForResolve(test resolverTest) func(t *testing.T) {
+	return func(t *testing.T) {
+		key := test.key
+		key.Resolve(test.getter)
+
+		if key.Value != test.result.value {
+			t.Logf("%s: expected %v got %v", t.Name(), test.result.value, key.Value)
+			t.Fail()
+		}
+
+		if key.Resolved != test.result.resolved {
+			t.Logf("%s: expected %v got %v", t.Name(), test.result.resolved, key.Resolved)
+			t.Fail()
+		}
+	}
+}
+
+func TestKey_Resolve(t *testing.T) {
+	for desc, test := range resolverTests {
+		t.Run(desc, tFuncForResolve(test))
 	}
 }
