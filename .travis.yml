@@ -16,3 +16,13 @@ notifications:
 script:
 - go vet
 - go test -v -race ./...
+
+after_success:
+  - test -n "$TRAVIS_TAG" && echo "this was tagged"
+
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: curl -sL https://git.io/goreleaser | bash
+    on:
+      tags: true
