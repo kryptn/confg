@@ -1,11 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"github.com/kryptn/confg/containers"
 	"github.com/kryptn/confg/gatherer"
 	"github.com/kryptn/confg/outputter"
 	"github.com/kryptn/confg/parser"
 	"log"
+)
+
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 func allConfgs(inputFiles []string) []*containers.Confg {
@@ -27,6 +34,11 @@ func main() {
 		log.Fatal(err)
 	}
 	//log.Printf("Settings: %+v", settings)
+
+	if settings.version {
+		fmt.Printf("confg %v, commit %v, built at %v\n", version, commit, date)
+		return
+	}
 
 	// each input file is successively applied on top of the previous
 	collected := (&containers.Confg{}).Overlay(allConfgs(settings.inputFiles)...)

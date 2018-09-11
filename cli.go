@@ -24,6 +24,8 @@ type Settings struct {
 
 	verbose     bool
 	includeMeta bool
+
+	version bool
 }
 
 const (
@@ -35,6 +37,8 @@ const (
 	verboseFlagUsage = "add to stdout operation logs"
 
 	metaFlagUsage = "include toml operation logs in a top-level `confg-meta` map"
+
+	versionFlagUsage = "show confg version"
 
 	shorthand = " (shorthand)"
 )
@@ -49,6 +53,8 @@ func (s *Settings) DeclareFlags() {
 	flag.BoolVar(&s.verbose, "dry-run", false, verboseFlagUsage)
 
 	flag.BoolVar(&s.includeMeta, "meta", false, metaFlagUsage)
+
+	flag.BoolVar(&s.version, "version", false, versionFlagUsage)
 }
 
 func GetSettings() (*Settings, error) {
