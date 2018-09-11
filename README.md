@@ -1,6 +1,9 @@
 # Confg
 
-[![Build Status](https://travis-ci.org/kryptn/confg.svg?branch=master)](https://travis-ci.org/kryptn/confg)
+[![Github All Releases](https://img.shields.io/github/downloads/kryptn/confg/total.svg?style=flat-square)](https://github.com/kryptn/confg/releases/latest)
+[![Travis (.org)](https://img.shields.io/travis/kryptn/confg.svg?style=flat-square)](https://travis-ci.org/kryptn/confg)
+
+
 
 ### Config Gatherer
 
